@@ -32,13 +32,13 @@
           </div>
           <!-- ! Button Control -->
           <div class="d-flex flex-row justify-content-center align-items-center my-3" *ngIf="callStateIdentifier === 2">
-            <button class="btn btn-outline-secondary me-2">Mute</button>
-            <button class="btn btn-outline-secondary me-2">Unmute</button>
-            <button class="btn btn-outline-secondary me-2">Start Camera</button>
-            <button class="btn btn-outline-secondary me-2">Stop Camera</button>
-            <button class="btn btn-outline-secondary me-2">Start Share</button>
-            <button class="btn btn-outline-secondary me-2">Stop Share</button>
-            <button class="btn btn-outline-danger me-2">Disconnect</button>
+            <button class="btn btn-outline-secondary me-2" (click)="mute()">Mute</button>
+            <button class="btn btn-outline-secondary me-2" (click)="unMute()">Unmute</button>
+            <button class="btn btn-outline-secondary me-2" (click)="startCamera()">Start Camera</button>
+            <button class="btn btn-outline-secondary me-2" (click)="stopCamera()">Stop Camera</button>
+            <button class="btn btn-outline-secondary me-2" (click)="startShare()">Start Share</button>
+            <button class="btn btn-outline-secondary me-2" (click)="stopShare()">Stop Share</button>
+            <button class="btn btn-outline-danger me-2" (click)="disconnect()">Disconnect</button>
           </div>
           <div id="remoteVideosGallery"></div>
         </div>

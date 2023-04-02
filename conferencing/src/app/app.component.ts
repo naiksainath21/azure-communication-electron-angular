@@ -122,6 +122,37 @@ export class AppComponent implements OnInit {
 
   }
 
+  async disconnect() {
+    await this.call.hangUp();
+    this.callStateIdentifier = 1;
+  }
+
+  async mute() {
+    await this.call.mute();
+  }
+
+  async unMute() {
+    await this.call.unmute();
+  }
+
+  async startCamera() {
+    await this.call.startVideo(this.localVideoStream);
+    this.showLocalFeed();
+  }
+
+  async stopCamera() {
+    await this.call.stopVideo(this.localVideoStream);
+    this.hideLocalFeed();
+  }
+
+  async startShare() {
+    await this.call.startScreenSharing();
+  }
+
+  async stopShare(){
+    await this.call.stopScreenSharing();
+  }
+
   async showLocalFeed() {
     this.localVideoRender = new VideoStreamRenderer(this.localVideoStream);
     const  view = await this.localVideoRender.createView();
