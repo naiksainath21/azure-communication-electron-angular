@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo , LocalVideoStream, AudioDeviceInfo} from '@azure/communication-calling';
+import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo , LocalVideoStream, AudioDeviceInfo, Call} from '@azure/communication-calling';
 import { AzureCommunicationTokenCredential } from '@azure/communication-common';
 import { CommunicationIdentityClient } from '@azure/communication-identity';
 
@@ -11,7 +11,10 @@ import { CommunicationIdentityClient } from '@azure/communication-identity';
 export class AppComponent implements OnInit {
 
   private connectionString: string = "endpoint=https://sm-voice.communication.azure.com/;accesskey=fw30IRxAiquGXBvZ1o7V39n7qhg9G7aBVeoKxyKaUUt2ZDlxwKPGbTNMEGdBWZmRYCIf+Q526QmDDe/ATNQV8g==";
+
+  callState : string = 'Not Connected';
   title = 'SM-Communications';
+  teamsLink : string = '';
 
   callClient: CallClient = null!;
   callAgent: CallAgent = null!;
@@ -26,6 +29,9 @@ export class AppComponent implements OnInit {
 
   localVideoStream : LocalVideoStream = null!;
 
+  call : Call = null!;
+
+
   ngOnInit(): void {
     this.initialize();
   }
@@ -39,7 +45,7 @@ export class AppComponent implements OnInit {
 
     this.deviceManager = await this.callClient.getDeviceManager();
     this.videoDevices = await this.deviceManager.getCameras();
-    
+
     if(this.videoDevices.length > 0){
       this.selectedVideoDevice = this.videoDevices[0];
       this.localVideoStream = new LocalVideoStream(this.selectedVideoDevice);
@@ -71,6 +77,20 @@ export class AppComponent implements OnInit {
     console.log(`\Token expires on ${expiresOn}`)
 
     return token;
+
+  }
+
+  connect(teamsLink : string) {
+    const destincationToCall = {meetingLink : teamsLink};
+
+    this.call = this.callAgent.join(destincationToCall);
+
+    this.call.on('stateChanged', () => {
+      this.callState = this.call.state
+      if(this.call.state === 'Connected') {
+        
+      }
+    })
 
   }
 
