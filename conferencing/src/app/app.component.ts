@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo , LocalVideoStream, AudioDeviceInfo, Call} from '@azure/communication-calling';
+import { Component, ElementRef, OnInit } from '@angular/core';
+import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo , LocalVideoStream, AudioDeviceInfo, Call, VideoStreamRenderer} from '@azure/communication-calling';
 import { AzureCommunicationTokenCredential } from '@azure/communication-common';
 import { CommunicationIdentityClient } from '@azure/communication-identity';
+
+// https://teams.microsoft.com/l/meetup-join/19:meeting_MGZiNGMzMzQtNTIzOS00Y2Y3LTk1YTktMzMwNmY2ODZhMjI5@thread.v2/0?context=%7B%22Tid%22:%22f90a5aa4-8a9e-423b-888e-5efaa63ba65d%22,%22Oid%22:%22c4b61ee2-642f-4f01-8db4-dce1571aa1c3%22%7D
 
 @Component({
   selector: 'app-root',
@@ -28,8 +30,17 @@ export class AppComponent implements OnInit {
   selectedSpeaker : AudioDeviceInfo = null!;
 
   localVideoStream : LocalVideoStream = null!;
+  localVideoRender : VideoStreamRenderer = null!;
 
   call : Call = null!;
+
+  // * Buttons State
+
+  connectBtnDisabled = true;
+
+  constructor(private _eleRef: ElementRef) {
+
+  }
 
 
   ngOnInit(): void {
@@ -60,6 +71,8 @@ export class AppComponent implements OnInit {
     this.deviceManager.selectMicrophone(this.selectedMicrophone);
     this.deviceManager.selectSpeaker(this.selectedSpeaker);
 
+    this.connectBtnDisabled = false;
+
     
   }
 
@@ -88,10 +101,22 @@ export class AppComponent implements OnInit {
     this.call.on('stateChanged', () => {
       this.callState = this.call.state
       if(this.call.state === 'Connected') {
-        
+        this.showLocalFeed();
       }
     })
 
+  }
+
+  async showLocalFeed() {
+    this.localVideoRender = new VideoStreamRenderer(this.localVideoStream);
+    const  view = await this.localVideoRender.createView();
+    var ele = this._eleRef.nativeElement.querySelector('#selfVideo')
+    ele.appendChild(view.target);
+  }
+
+  async hideLocalFeed() {
+    this.localVideoRender.dispose();
+    this._eleRef.nativeElement.querySelector('#selfVideo').innerHtml = '';
   }
 
 }
