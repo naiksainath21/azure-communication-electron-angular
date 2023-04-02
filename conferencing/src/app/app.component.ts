@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
-import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo, LocalVideoStream, AudioDeviceInfo, Call, VideoStreamRenderer, RemoteParticipant } from '@azure/communication-calling';
+import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo, LocalVideoStream, AudioDeviceInfo, Call, VideoStreamRenderer, RemoteParticipant, CallAgentOptions } from '@azure/communication-calling';
 import { AzureCommunicationTokenCredential } from '@azure/communication-common';
 import { CommunicationIdentityClient } from '@azure/communication-identity';
 
@@ -14,7 +14,8 @@ export class AppComponent implements OnInit {
 
   private connectionString: string = "endpoint=https://sm-voice.communication.azure.com/;accesskey=fw30IRxAiquGXBvZ1o7V39n7qhg9G7aBVeoKxyKaUUt2ZDlxwKPGbTNMEGdBWZmRYCIf+Q526QmDDe/ATNQV8g==";
 
-  callState : string = 'Not Connected';
+  callStateText : string = 'Not Connected';
+  callStateIdentifier: number = 1;
   title = 'SM-Communications';
   teamsLink : string = '';
 
@@ -53,7 +54,10 @@ export class AppComponent implements OnInit {
     this.callClient = new CallClient();
     const token = await this.generateTokenAsync();
     const tokenCredential = new AzureCommunicationTokenCredential(token);
-    this.callAgent = await this.callClient.createCallAgent(tokenCredential);
+
+  
+
+    this.callAgent = await this.callClient.createCallAgent(tokenCredential, {displayName: 'Sai - azure'});
 
     this.deviceManager = await this.callClient.getDeviceManager();
     this.videoDevices = await this.deviceManager.getCameras();
@@ -100,8 +104,9 @@ export class AppComponent implements OnInit {
     this.call = this.callAgent.join(destincationToCall);
 
     this.call.on('stateChanged', () => {
-      this.callState = this.call.state
+      this.callStateText = this.call.state
       if(this.call.state === 'Connected') {
+        this.callStateIdentifier = 2;
         this.showLocalFeed();
       }
     })
@@ -167,6 +172,7 @@ export class AppComponent implements OnInit {
     remoteVideoStream.on('isAvailableChanged', async () => {
       try {
         if (remoteVideoStream.isAvailable) {
+          remoteVideoContainer.innerHTML = ''
           await createView();
         } else {
           view.dispose();
@@ -185,11 +191,6 @@ export class AppComponent implements OnInit {
         console.error(e);
       }
     }
-
-    console.log(`Initial stream size: height: ${remoteVideoStream.size.height}, width: ${remoteVideoStream.size.width}`);
-    remoteVideoStream.on('sizeChanged', () => {
-      console.log(`Remote video stream size changed: new height: ${remoteVideoStream.size.height}, new width: ${remoteVideoStream.size.width}`);
-    });
   }
 
 }
