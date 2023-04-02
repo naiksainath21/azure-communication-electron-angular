@@ -133,7 +133,63 @@ export class AppComponent implements OnInit {
     let videoStream = participant.videoStreams.find( function (s : any) {return s.mediaStreamType === 'Video'});
     let screenShareStream = participant.videoStreams.find( function (s : any) {return s.mediaStreamType === 'ScreenSharing'});
 
+    this.subscribeToRemoteVideoStream(videoStream);
 
+  }
+
+  async subscribeToRemoteVideoStream(remoteVideoStream: any) {
+
+    var remoteVideosGallery = this._eleRef.nativeElement.querySelector('#remoteVideosGallery');
+
+    let renderer = new VideoStreamRenderer(remoteVideoStream);
+    let view: any;
+    let remoteVideoContainer = document.createElement('div');
+    remoteVideoContainer.className = 'remote-video-container';
+
+    /**
+     * isReceiving API is currently an @beta feature.
+     * To use this api please use 'beta' version of Azure Communication Services Calling Web SDK.
+     */
+    let loadingSpinner = document.createElement('div');
+    // See the css example below for styling the loading spinner.
+    loadingSpinner.className = 'loading-spinner';
+
+
+    const createView = async () => {
+      // Create a renderer view for the remote video stream.
+      view = await renderer.createView();
+      // Attach the renderer view to the UI.
+      remoteVideoContainer.appendChild(view.target);
+      remoteVideosGallery.appendChild(remoteVideoContainer);
+    }
+
+    // Remote participant has switched video on/off
+    remoteVideoStream.on('isAvailableChanged', async () => {
+      try {
+        if (remoteVideoStream.isAvailable) {
+          await createView();
+        } else {
+          view.dispose();
+          remoteVideosGallery.removeChild(remoteVideoContainer);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+    // Remote participant has video on initially.
+    if (remoteVideoStream.isAvailable) {
+      try {
+        await createView();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    console.log(`Initial stream size: height: ${remoteVideoStream.size.height}, width: ${remoteVideoStream.size.width}`);
+    remoteVideoStream.on('sizeChanged', () => {
+      console.log(`Remote video stream size changed: new height: ${remoteVideoStream.size.height}, new width: ${remoteVideoStream.size.width}`);
+    });
   }
 
 }
