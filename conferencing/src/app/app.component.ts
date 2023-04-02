@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnInit } from '@angular/core';
-import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo , LocalVideoStream, AudioDeviceInfo, Call, VideoStreamRenderer} from '@azure/communication-calling';
+import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo, LocalVideoStream, AudioDeviceInfo, Call, VideoStreamRenderer, RemoteParticipant } from '@azure/communication-calling';
 import { AzureCommunicationTokenCredential } from '@azure/communication-common';
 import { CommunicationIdentityClient } from '@azure/communication-identity';
 
@@ -34,8 +34,9 @@ export class AppComponent implements OnInit {
 
   call : Call = null!;
 
-  // * Buttons State
+  meetingParticipants : any = [];
 
+  // * Buttons State
   connectBtnDisabled = true;
 
   constructor(private _eleRef: ElementRef) {
@@ -105,6 +106,15 @@ export class AppComponent implements OnInit {
       }
     })
 
+    this.call.on('remoteParticipantsUpdated', () => {
+      this.meetingParticipants = this.call.remoteParticipants;
+
+      this.meetingParticipants.forEach((participant : RemoteParticipant) => {
+        this.setUpRemoteParticipant(participant);
+      });
+
+    })
+
   }
 
   async showLocalFeed() {
@@ -117,6 +127,13 @@ export class AppComponent implements OnInit {
   async hideLocalFeed() {
     this.localVideoRender.dispose();
     this._eleRef.nativeElement.querySelector('#selfVideo').innerHtml = '';
+  }
+
+  setUpRemoteParticipant(participant: RemoteParticipant) {
+    let videoStream = participant.videoStreams.find( function (s : any) {return s.mediaStreamType === 'Video'});
+    let screenShareStream = participant.videoStreams.find( function (s : any) {return s.mediaStreamType === 'ScreenSharing'});
+
+
   }
 
 }
