@@ -3,6 +3,9 @@ import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo, LocalVideoStream
 import { AzureCommunicationTokenCredential } from '@azure/communication-common';
 import { CommunicationIdentityClient } from '@azure/communication-identity';
 
+
+
+
 // https://teams.microsoft.com/l/meetup-join/19:meeting_MGZiNGMzMzQtNTIzOS00Y2Y3LTk1YTktMzMwNmY2ODZhMjI5@thread.v2/0?context=%7B%22Tid%22:%22f90a5aa4-8a9e-423b-888e-5efaa63ba65d%22,%22Oid%22:%22c4b61ee2-642f-4f01-8db4-dce1571aa1c3%22%7D
 
 @Component({
@@ -14,10 +17,10 @@ export class AppComponent implements OnInit {
 
   private connectionString: string = "endpoint=https://sm-voice.communication.azure.com/;accesskey=fw30IRxAiquGXBvZ1o7V39n7qhg9G7aBVeoKxyKaUUt2ZDlxwKPGbTNMEGdBWZmRYCIf+Q526QmDDe/ATNQV8g==";
 
-  callStateText : string = 'Not Connected';
+  callStateText: string = 'Not Connected';
   callStateIdentifier: number = 1;
   title = 'SM-Communications';
-  teamsLink : string = '';
+  teamsLink: string = '';
 
   callClient: CallClient = null!;
   callAgent: CallAgent = null!;
@@ -26,16 +29,16 @@ export class AppComponent implements OnInit {
   microphones: AudioDeviceInfo[] = [];
   speakers: AudioDeviceInfo[] = [];
 
-  selectedVideoDevice : VideoDeviceInfo = null!;
-  selectedMicrophone : AudioDeviceInfo = null!;
-  selectedSpeaker : AudioDeviceInfo = null!;
+  selectedVideoDevice: VideoDeviceInfo = null!;
+  selectedMicrophone: AudioDeviceInfo = null!;
+  selectedSpeaker: AudioDeviceInfo = null!;
 
-  localVideoStream : LocalVideoStream = null!;
-  localVideoRender : VideoStreamRenderer = null!;
+  localVideoStream: LocalVideoStream = null!;
+  localVideoRender: VideoStreamRenderer = null!;
 
-  call : Call = null!;
+  call: Call = null!;
 
-  meetingParticipants : any = [];
+  meetingParticipants: any = [];
 
   // * Buttons State
   connectBtnDisabled = true;
@@ -55,14 +58,14 @@ export class AppComponent implements OnInit {
     const token = await this.generateTokenAsync();
     const tokenCredential = new AzureCommunicationTokenCredential(token);
 
-  
 
-    this.callAgent = await this.callClient.createCallAgent(tokenCredential, {displayName: 'Sai - azure'});
+
+    this.callAgent = await this.callClient.createCallAgent(tokenCredential, { displayName: 'Sai - azure' });
 
     this.deviceManager = await this.callClient.getDeviceManager();
     this.videoDevices = await this.deviceManager.getCameras();
 
-    if(this.videoDevices.length > 0){
+    if (this.videoDevices.length > 0) {
       this.selectedVideoDevice = this.videoDevices[0];
       this.localVideoStream = new LocalVideoStream(this.selectedVideoDevice);
     }
@@ -78,7 +81,7 @@ export class AppComponent implements OnInit {
 
     this.connectBtnDisabled = false;
 
-    
+
   }
 
   async generateTokenAsync() {
@@ -98,23 +101,23 @@ export class AppComponent implements OnInit {
 
   }
 
-  connect(teamsLink : string) {
-    const destincationToCall = {meetingLink : teamsLink};
+  connect(teamsLink: string) {
+    const destincationToCall = { meetingLink: teamsLink };
 
     this.call = this.callAgent.join(destincationToCall);
 
     this.call.on('stateChanged', () => {
       this.callStateText = this.call.state
-      if(this.call.state === 'Connected') {
+      if (this.call.state === 'Connected') {
         this.callStateIdentifier = 2;
-        this.showLocalFeed();
+        // this.showLocalFeed();
       }
     })
 
     this.call.on('remoteParticipantsUpdated', () => {
       this.meetingParticipants = this.call.remoteParticipants;
 
-      this.meetingParticipants.forEach((participant : RemoteParticipant) => {
+      this.meetingParticipants.forEach((participant: RemoteParticipant) => {
         this.setUpRemoteParticipant(participant);
       });
 
@@ -146,16 +149,18 @@ export class AppComponent implements OnInit {
   }
 
   async startShare() {
+    
     await this.call.startScreenSharing();
+   
   }
 
-  async stopShare(){
+  async stopShare() {
     await this.call.stopScreenSharing();
   }
 
   async showLocalFeed() {
     this.localVideoRender = new VideoStreamRenderer(this.localVideoStream);
-    const  view = await this.localVideoRender.createView();
+    const view = await this.localVideoRender.createView();
     var ele = this._eleRef.nativeElement.querySelector('#selfVideo')
     ele.appendChild(view.target);
   }
@@ -166,8 +171,8 @@ export class AppComponent implements OnInit {
   }
 
   setUpRemoteParticipant(participant: RemoteParticipant) {
-    let videoStream = participant.videoStreams.find( function (s : any) {return s.mediaStreamType === 'Video'});
-    let screenShareStream = participant.videoStreams.find( function (s : any) {return s.mediaStreamType === 'ScreenSharing'});
+    let videoStream = participant.videoStreams.find(function (s: any) { return s.mediaStreamType === 'Video' });
+    let screenShareStream = participant.videoStreams.find(function (s: any) { return s.mediaStreamType === 'ScreenSharing' });
 
     this.subscribeToRemoteVideoStream(videoStream);
 
