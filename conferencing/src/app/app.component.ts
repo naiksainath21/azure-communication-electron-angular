@@ -3,7 +3,7 @@ import { CallAgent, CallClient, DeviceManager, VideoDeviceInfo, LocalVideoStream
 import { AzureCommunicationTokenCredential } from '@azure/communication-common';
 import { CommunicationIdentityClient } from '@azure/communication-identity';
 
-
+const teamsURL = "https://teams.microsoft.com/l/meetup-join/19:meeting_NzEyNDAyM2MtNzMxZC00NTkwLWE5ZGQtYzE4OWYwZGE4ZDQ2@thread.v2/0?context=%7B%22Tid%22:%22f90a5aa4-8a9e-423b-888e-5efaa63ba65d%22,%22Oid%22:%226ba51c9e-d97d-4f11-8c2b-c948accddae0%22%7D";
 
 
 // https://teams.microsoft.com/l/meetup-join/19:meeting_MGZiNGMzMzQtNTIzOS00Y2Y3LTk1YTktMzMwNmY2ODZhMjI5@thread.v2/0?context=%7B%22Tid%22:%22f90a5aa4-8a9e-423b-888e-5efaa63ba65d%22,%22Oid%22:%22c4b61ee2-642f-4f01-8db4-dce1571aa1c3%22%7D
@@ -43,13 +43,19 @@ export class AppComponent implements OnInit {
   // * Buttons State
   connectBtnDisabled = true;
 
+  mediaDevices = navigator.mediaDevices as any;
+
   constructor(private _eleRef: ElementRef) {
 
   }
 
 
   ngOnInit(): void {
-    this.initialize();
+
+    (async () => {
+      await this.initialize();
+      await this.connect(teamsURL);
+    })();
   }
 
   async initialize() {
@@ -58,17 +64,36 @@ export class AppComponent implements OnInit {
     const token = await this.generateTokenAsync();
     const tokenCredential = new AzureCommunicationTokenCredential(token);
 
-
-
     this.callAgent = await this.callClient.createCallAgent(tokenCredential, { displayName: 'Sai - azure' });
 
     this.deviceManager = await this.callClient.getDeviceManager();
     this.videoDevices = await this.deviceManager.getCameras();
+    this.selectedVideoDevice = this.videoDevices[0];
+    // if (this.videoDevices.length > 0) {
+    //   this.selectedVideoDevice = this.videoDevices[0];
+    //   this.localVideoStream = new LocalVideoStream(this.selectedVideoDevice);
+    // }
 
-    if (this.videoDevices.length > 0) {
-      this.selectedVideoDevice = this.videoDevices[0];
-      this.localVideoStream = new LocalVideoStream(this.selectedVideoDevice);
-    }
+    // try {
+    //   const stream = await this.mediaDevices.getUserMedia({
+    //     audio: false,
+    //     video: {
+    //       mandatory: {
+    //         chromeMediaSource: 'desktop',
+    //         chromeMediaSourceId: "screen:0:0",
+    //         minWidth: 1280,
+    //         maxWidth: 1280,
+    //         minHeight: 720,
+    //         maxHeight: 720
+    //       }
+    //     }
+    //   })
+
+    //   this.localVideoStream = new LocalVideoStream(stream);
+
+    // } catch (e) {
+    //   console.error(e);
+    // }
 
     this.microphones = await this.deviceManager.getMicrophones();
     this.selectedMicrophone = this.microphones[0];
@@ -80,8 +105,6 @@ export class AppComponent implements OnInit {
     this.deviceManager.selectSpeaker(this.selectedSpeaker);
 
     this.connectBtnDisabled = false;
-
-
   }
 
   async generateTokenAsync() {
@@ -106,11 +129,15 @@ export class AppComponent implements OnInit {
 
     this.call = this.callAgent.join(destincationToCall);
 
-    this.call.on('stateChanged', () => {
+    this.call.on('stateChanged', async () => {
       this.callStateText = this.call.state
       if (this.call.state === 'Connected') {
         this.callStateIdentifier = 2;
+        await this.call.mute();
+        // await this.stopCamera();
         // this.showLocalFeed();
+        this.meetingParticipants = this.call.remoteParticipants;
+        this._eleRef.nativeElement.querySelector('#refreshRemoteMedia-button').click();
       }
     })
 
@@ -139,6 +166,7 @@ export class AppComponent implements OnInit {
   }
 
   async startCamera() {
+    this.localVideoStream  = new LocalVideoStream(this.selectedVideoDevice);
     await this.call.startVideo(this.localVideoStream);
     this.showLocalFeed();
   }
@@ -149,13 +177,35 @@ export class AppComponent implements OnInit {
   }
 
   async startShare() {
-    
-    await this.call.startScreenSharing();
-   
+    try {
+      const stream = await this.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+            chromeMediaSourceId: "screen:0:0",
+            minWidth: 1280,
+            maxWidth: 1280,
+            minHeight: 720,
+            maxHeight: 720
+          }
+        }
+      })
+      this.localVideoStream = new LocalVideoStream(stream);
+      await this.call.startVideo(this.localVideoStream);
+      // showLocalFeed(); // ! Do not show own screen
+
+      // document.getElementById('mainbody').style.border = "5px solid red"
+
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   async stopShare() {
-    await this.call.stopScreenSharing();
+    await this.call.stopVideo(this.localVideoStream);
+    // document.getElementById('mainbody').style.border = "none"
+    this.hideLocalFeed();
   }
 
   async showLocalFeed() {
@@ -166,8 +216,15 @@ export class AppComponent implements OnInit {
   }
 
   async hideLocalFeed() {
-    this.localVideoRender.dispose();
+    if (this.localVideoRender) this.localVideoRender.dispose();
     this._eleRef.nativeElement.querySelector('#selfVideo').innerHtml = '';
+  }
+
+  subscribeToRemoteFeed() {
+    alert("")
+    this.meetingParticipants.forEach((participant: RemoteParticipant) => {
+      this.setUpRemoteParticipant(participant);
+    });
   }
 
   setUpRemoteParticipant(participant: RemoteParticipant) {
@@ -175,6 +232,9 @@ export class AppComponent implements OnInit {
     let screenShareStream = participant.videoStreams.find(function (s: any) { return s.mediaStreamType === 'ScreenSharing' });
 
     this.subscribeToRemoteVideoStream(videoStream);
+    if (screenShareStream) {
+      this.subscribeToRemoteVideoStream(screenShareStream);
+    }
 
   }
 

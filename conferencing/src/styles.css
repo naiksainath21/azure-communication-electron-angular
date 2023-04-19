@@ -1,1 +1,58 @@
 /* You can add global styles to this file, and also import other style files */
+
+body {
+    color: white !important;
+    background-color: #252525 !important;
+    min-height: 90vh;
+ }
+ 
+ i {
+    font-size: 25px;
+ }
+ 
+ button:disabled {
+    cursor: not-allowed !important;
+ }
+ 
+ .remote-video-container {
+    position: relative;
+ }
+ 
+ .loading-spinner {
+    border: 12px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 12px solid #ca5010;
+    width: 100px;
+    height: 100px;
+    -webkit-animation: spin 2s linear infinite;
+    /* Safari */
+    animation: spin 2s linear infinite;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: translate(-50%, -50%);
+ }
+ 
+ @keyframes spin {
+    0% {
+       transform: rotate(0deg);
+    }
+ 
+    100% {
+       transform: rotate(360deg);
+    }
+ }
+ 
+ /* Safari */
+ @-webkit-keyframes spin {
+    0% {
+       -webkit-transform: rotate(0deg);
+    }
+ 
+    100% {
+       -webkit-transform: rotate(360deg);
+    }
+ }

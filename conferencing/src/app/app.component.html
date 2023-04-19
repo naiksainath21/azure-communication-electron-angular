@@ -1,73 +1,59 @@
-<div class="container mt-5">
-  <h1 class="text-center mb-3">{{title}}</h1>
+<div class="container-fluid mt-5">
 
-  <h6 class="text-danger my-3">Call status : {{callStateText}}</h6>
+  <h1 class="text-center text-white mb-3">{{title}}</h1>
 
-  <div class="row g-3">
-    <div class="col-lg-12" *ngIf="callStateIdentifier === 1">
-      <div class="mb-3">
-        <label for="exampleInputEmail1" class="form-label">Enter Teams Meeting Link</label>
-        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"
-          [(ngModel)]="teamsLink">
-      </div>
-      <button class="btn btn-outline-success text-uppercase" (click)="connect(teamsLink)"
-        [disabled]="connectBtnDisabled"><i class="bi bi-telephone-forward-fill mx-2"></i>Join Teams
-        call</button>
-    </div>
+  <p class="text-white my-3">Call status :- <span style="font-weight: bold" id="call-state"> {{callStateText}} </span>
+  </p>
 
-    <div class="col-lg-12">
-      <div class="row">
+  <!-- ! SELF VIDEO /SHARE SCREEN FEED -->
+  <div class="container-fluid">
+    <div class="row">
 
+      <div class="col-lg-2 col-sm-12 h100" style="border: 1px solid darkslategray;">
+        <div id="selfVideo" style="width: 100%; height: auto;">
 
-        <div class="col-lg-9">
-          <div class="row g-3">
-            <div class="col-lg-3" *ngFor="let participant of meetingParticipants">
-              <ng-container *ngIf="callStateIdentifier === 2">
-                <div class="p-3 card h-100">
-                  <h1 class="text-center">{{participant.displayName ?? "Guest"}}</h1>
-                </div>
-              </ng-container>
-            </div>
-
-          </div>
-          <!-- ! Button Control -->
-          <div class="d-flex flex-row justify-content-center align-items-center my-3" *ngIf="callStateIdentifier === 2">
-            <button class="btn btn-outline-secondary me-2" (click)="mute()">Mute</button>
-            <button class="btn btn-outline-secondary me-2" (click)="unMute()">Unmute</button>
-            <button class="btn btn-outline-secondary me-2" (click)="startCamera()">Start Camera</button>
-            <button class="btn btn-outline-secondary me-2" (click)="stopCamera()">Stop Camera</button>
-            <button class="btn btn-outline-secondary me-2" (click)="startShare()">Start Share</button>
-            <button class="btn btn-outline-secondary me-2" (click)="stopShare()">Stop Share</button>
-            <button class="btn btn-outline-danger me-2" (click)="disconnect()">Disconnect</button>
-          </div>
-          <div id="remoteVideosGallery"></div>
         </div>
-
-
-        <div class="col-lg-3">
-          <div class="d-flex flex-column">
-            <div id="selfVideo" style="width: 100%; height: 20%;"></div>
-
-            <div>
-              <ul class="list-group">
-                <li class="list-group-item" *ngFor="let participant of meetingParticipants">{{participant.displayName ??
-                  "Guest user"}}</li>
-
-              </ul>
-            </div>
-          </div>
-        </div>
-
-
       </div>
 
-    </div>
-    <div class="col-lg-12">
+      <div class="col-lg-8 col-sm-12 h100">
+        <div class="d-flex flex-column align-items-center justif-content-center">
 
-    </div>
-    <div class="col-lg-12">
+          <!-- ! Remote users camera feed /share screen feed -->
+          <div id="remoteVideosGallery" style="border: 1px solid darkslategray; width:100%; min-height:70vh;">
 
+          </div>
+
+          <!-- ! Controls -->
+          <div class="d-flex flex-row justify-content-center my-2 p-3">
+            <button class="btn btn-outline-secondary me-2" (click)="mute()"><i class="bi bi-mic-mute-fill"></i></button>
+            <button class="btn btn-outline-secondary me-2" (click)="unMute()"><i class="bi bi-mic-fill"></i></button>
+            <button class="btn btn-outline-secondary me-2" (click)="startCamera()"><i
+                class="bi bi-camera-video-fill"></i></button>
+            <button class="btn btn-outline-secondary me-2" (click)="stopCamera()"><i
+                class="bi bi-camera-video-off-fill"></i></button>
+            <button class="btn btn-outline-secondary me-2" (click)="startShare()"><i
+                class="bi bi-arrow-up-square"></i></button>
+            <button class="btn btn-outline-secondary me-2" (click)="stopShare()"><i
+                class="bi bi-x-square-fill"></i></button>
+            <button class="btn btn-outline-danger me-2" (click)="disconnect()"><i
+                class="bi bi-telephone-x-fill"></i></button>
+                <button class="btn btn-secondary" id="refreshRemoteMedia-button" type="button"
+                                 style="visibility: hidden;" (click)="subscribeToRemoteFeed()">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+          </div>
+
+
+        </div>
+      </div>
+      <div class="col-lg-2 col-sm-12 h100" style="border: 1px solid darkslategray;">
+        <ul id="participantList" class="list-group p-3">
+            <li class="list-group-item" *ngFor="let participant of meetingParticipants">{{participant.displayName ?? "Guest"}}</li>
+        </ul>
+    </div>
     </div>
   </div>
+
+
 
 </div>
