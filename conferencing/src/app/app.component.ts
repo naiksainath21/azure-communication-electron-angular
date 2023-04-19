@@ -221,7 +221,6 @@ export class AppComponent implements OnInit {
   }
 
   subscribeToRemoteFeed() {
-    alert("")
     this.meetingParticipants.forEach((participant: RemoteParticipant) => {
       this.setUpRemoteParticipant(participant);
     });
